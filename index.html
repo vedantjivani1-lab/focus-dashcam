@@ -104,7 +104,7 @@
   /* ---------- Drive log (horizontal) ---------- */
   .drivelog{position:relative;border-top:1px solid var(--line)}
   .drivelog .sticky{padding-block:clamp(56px,8vw,96px);display:flex;flex-direction:column;justify-content:center;gap:clamp(24px,4vh,48px)}
-  .drivelog.pinned .sticky{position:sticky;top:calc(60px + env(safe-area-inset-top,0px));height:calc(100vh - 60px);overflow:hidden;padding-block:28px 24px}
+  .drivelog.pinned .sticky{position:sticky;top:calc(60px + env(safe-area-inset-top,0px));height:calc(100vh - 60px);height:calc(100dvh - 60px);overflow:hidden;padding-block:28px 24px}
   .drivelog h2{font-size:clamp(46px,5.6vw,84px)}
   .drivelog.pinned .clip{width:clamp(270px,min(30vw,52vh),440px)}
   .drivelog-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
@@ -1027,7 +1027,7 @@
   const log = document.querySelector('.drivelog'), sticky = log.querySelector('.sticky'), track = document.getElementById('track'), prog = document.getElementById('prog');
   let dist = 0;
   function setupPin(){
-    const wide = matchMedia('(min-width: 820px)').matches && !reduce && innerHeight >= 560;
+    const wide = !reduce && innerHeight >= 480;
     log.classList.toggle('pinned', wide);
     if (wide){
       track.style.transform = '';
