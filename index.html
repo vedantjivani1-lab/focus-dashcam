@@ -398,7 +398,86 @@
   .footer-big span{transition:color .5s, text-shadow .5s}
   .footer-big:hover span{text-shadow:0 0 60px rgba(245,184,30,.35)}
 
+  /* ---------- Scroll reveal + touch feedback (mobile-friendly motion) ---------- */
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.16,.84,.24,1),transform .7s cubic-bezier(.16,.84,.24,1)}
+  .reveal.in{opacity:1;transform:none}
+  .pillar,.kit-item,.ptile,.clip .frame,.btn{transition:transform .18s cubic-bezier(.16,.84,.24,1),box-shadow .18s cubic-bezier(.16,.84,.24,1)}
+  .pillar:active,.kit-item:active,.ptile:active,.price-card:active{transform:scale(.97)}
+  .clip .frame:active{transform:scale(.96)}
+  .btn:active{transform:scale(.94)}
+  @keyframes pulseGlow{0%,100%{box-shadow:0 10px 34px -6px rgba(245,184,30,.45)}50%{box-shadow:0 10px 46px -2px rgba(245,184,30,.85)}}
+  .btn-amber.pulse{animation:pulseGlow 2.4s ease-in-out infinite}
+  @keyframes floatIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .ptile svg{animation:floatIcon 3.6s ease-in-out infinite}
+  .ptile:nth-child(2n) svg{animation-delay:.6s}
+  .ptile:nth-child(3n) svg{animation-delay:1.2s}
+
+  /* 1. Top scroll-progress bar */
+  #scrollBar{position:fixed;top:0;left:0;height:3px;width:0%;background:var(--amber);z-index:60;box-shadow:0 0 12px rgba(245,184,30,.7);transition:width .08s linear}
+
+  /* 2. Nav gets blur + shadow after scrolling */
+  header.nav{transition:background .3s ease,box-shadow .3s ease,backdrop-filter .3s ease}
+  header.nav.scrolled{background:rgba(14,17,20,.86);backdrop-filter:blur(10px);box-shadow:0 8px 30px -12px rgba(0,0,0,.6)}
+
+  /* 3. Eyebrow tags slide in */
+  .eyebrow{opacity:0;transform:translateX(-18px);transition:opacity .6s ease,transform .6s ease}
+  .eyebrow.in{opacity:1;transform:none}
+
+  /* 5. Section divider draw-in */
+  .vision,.drivelog,.faq,.kit,.privacy{position:relative}
+  .vision::before,.drivelog::before,.faq::before,.kit::before,.privacy::before{content:"";position:absolute;top:-1px;left:0;height:2px;width:0;background:var(--amber);transition:width 1.1s cubic-bezier(.16,.84,.24,1);z-index:1}
+  .vision.line-in::before,.drivelog.line-in::before,.faq.line-in::before,.kit.line-in::before,.privacy.line-in::before{width:100%}
+
+  /* 6. Button shine sweep */
+  .btn-amber{position:relative;overflow:hidden}
+  .btn-amber::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(115deg,transparent,rgba(255,255,255,.5),transparent);animation:shine 3.4s ease-in-out infinite;pointer-events:none}
+  @keyframes shine{0%{left:-60%}35%,100%{left:130%}}
+
+  /* 7. FAQ chevron rotate */
+  .qa summary,.doc>summary{position:relative}
+  .qa summary::after{content:"+";position:absolute;right:0;top:0;font-size:22px;color:var(--amber);transition:transform .3s ease}
+  .qa[open] summary::after{transform:rotate(45deg)}
+
+  /* 8. Price card breathing glow */
+  @keyframes breathe{0%,100%{box-shadow:0 0 0 1px var(--amber),0 20px 50px -30px rgba(245,184,30,.25)}50%{box-shadow:0 0 0 1px var(--amber),0 26px 70px -20px rgba(245,184,30,.55)}}
+  .price-card{animation:breathe 4.5s ease-in-out infinite}
+
+  /* 9. Privacy tile pop-in with slight rotate */
+  .ptile.reveal{transform:translateY(26px) scale(.92) rotate(-2deg)}
+  .ptile.reveal.in{transform:none}
+
+  /* 10. HUD corner brackets pulse */
+  @keyframes cornerPulse{0%,100%{opacity:.55}50%{opacity:1}}
+  .hud .corner{animation:cornerPulse 2.8s ease-in-out infinite}
+
+  /* 11. REC dot radar ping */
+  .rec{position:relative}
+  .rec i{position:relative}
+  .rec i::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1.5px solid var(--rec);animation:ping 1.8s cubic-bezier(0,.6,.4,1) infinite}
+  @keyframes ping{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.4);opacity:0}}
+
+  /* 12. Footer letters rise-in */
+  .footer-big .fl{display:inline-block;opacity:0;transform:translateY(.5em);transition:opacity .6s cubic-bezier(.16,.84,.24,1),transform .6s cubic-bezier(.16,.84,.24,1)}
+  .footer-big.in .fl{opacity:1;transform:none}
+
+  /* 13. Waitlist box breathing border glow */
+  @keyframes waitlistGlow{0%,100%{box-shadow:0 0 0 1px var(--amber)}50%{box-shadow:0 0 26px 2px rgba(245,184,30,.4),0 0 0 1px var(--amber)}}
+  .waitlist{animation:waitlistGlow 3.2s ease-in-out infinite}
+
+  /* 14. Mode grid pop-in */
+  .mode.reveal{transform:translateY(20px) scale(.9)}
+  .mode.reveal.in{transform:none}
+
+  /* 15. Nav link underline sweep */
+  .nav-links a:not(.btn){position:relative}
+  .nav-links a:not(.btn)::after{content:"";position:absolute;left:0;bottom:-4px;width:100%;height:1.5px;background:var(--amber);transform:scaleX(0);transform-origin:left;transition:transform .3s ease}
+  .nav-links a:not(.btn):hover::after,.nav-links a:not(.btn):active::after,.nav-links a:not(.btn):focus-visible::after{transform:scaleX(1)}
+
   @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1!important;transform:none!important;transition:none!important}
+    .btn-amber.pulse,.ptile svg,.btn-amber::after,.price-card,.rec i::after,.waitlist,.hud .corner{animation:none!important}
+    .eyebrow,.footer-big .fl{opacity:1!important;transform:none!important}
+    .vision::before,.drivelog::before,.faq::before,.kit::before,.privacy::before{transition:none!important;width:100%!important}
     html{scroll-behavior:auto}
     .marquee-inner,.rec i,.grain,.lane,.hero-title .l,.hero-row,.price-card{animation:none}
     *{transition:none!important}
@@ -1140,6 +1219,88 @@
   /* ---------- Impact: shake + red wash ---------- */
   const impactSec = document.getElementById('impact'), consoleEl = document.querySelector('.console');
   btn.addEventListener('click', () => { setTimeout(() => { if (!reduce){ consoleEl.classList.remove('shake'); void consoleEl.offsetWidth; consoleEl.classList.add('shake'); } impactSec.classList.add('hit'); setTimeout(()=>impactSec.classList.remove('hit'), 4500); }, 120); });
+
+  /* ---------- Scroll reveal ---------- */
+  const revealEls = document.querySelectorAll('h2, .pillar, .kit-item, .ptile, .stat, .price-card, .clip, .qa, .doc, .vision-head p, .drivelog-head p, .mode');
+  revealEls.forEach((el,i)=>{ el.classList.add('reveal'); el.style.transitionDelay = ((i%5)*70)+'ms'; });
+  const eyebrowEls = document.querySelectorAll('.eyebrow');
+  const lineEls = document.querySelectorAll('.vision, .drivelog, .faq, .kit, .privacy');
+  const footerBigEl = document.getElementById('footerBig');
+  if (!reduce && 'IntersectionObserver' in window){
+    const revealIO = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{ if (e.isIntersecting){ e.target.classList.add('in'); revealIO.unobserve(e.target); } });
+    }, {threshold:.12, rootMargin:'0px 0px -6% 0px'});
+    revealEls.forEach(el=>revealIO.observe(el));
+    eyebrowEls.forEach(el=>revealIO.observe(el));
+    const lineIO = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{ if (e.isIntersecting){ e.target.classList.add('line-in'); lineIO.unobserve(e.target); } });
+    }, {threshold:.05});
+    lineEls.forEach(el=>lineIO.observe(el));
+    if (footerBigEl){
+      const footIO = new IntersectionObserver(entries=>{
+        entries.forEach(e=>{ if (e.isIntersecting){ e.target.classList.add('in'); footIO.unobserve(e.target); } });
+      }, {threshold:.3});
+      footIO.observe(footerBigEl);
+    }
+  } else {
+    revealEls.forEach(el=>el.classList.add('in'));
+    eyebrowEls.forEach(el=>el.classList.add('in'));
+    lineEls.forEach(el=>el.classList.add('line-in'));
+    if (footerBigEl) footerBigEl.classList.add('in');
+  }
+  if (!reduce){ const heroCta = document.querySelector('.hero-ctas .btn-amber'); if (heroCta) heroCta.classList.add('pulse'); }
+
+  /* ---------- Footer letters split for rise-in ---------- */
+  if (footerBigEl){
+    const fSpan = footerBigEl.querySelector('span');
+    if (fSpan){
+      const iEl = fSpan.querySelector('i');
+      const firstNode = fSpan.childNodes[0];
+      const raw = (firstNode && firstNode.nodeType === 3) ? firstNode.textContent : fSpan.textContent;
+      const frag = document.createDocumentFragment();
+      [...raw].forEach((ch,i)=>{
+        if (ch === ' '){ frag.appendChild(document.createTextNode('\u00A0')); }
+        else { const s = document.createElement('span'); s.className = 'fl'; s.textContent = ch; s.style.transitionDelay = (i*20)+'ms'; frag.appendChild(s); }
+      });
+      fSpan.textContent = '';
+      fSpan.appendChild(frag);
+      if (iEl){ iEl.classList.add('fl'); iEl.style.transitionDelay = (raw.length*20)+'ms'; fSpan.appendChild(iEl); }
+    }
+  }
+
+  /* ---------- Stat counters ---------- */
+  function animateCount(el){
+    const raw = el.textContent.trim();
+    const num = parseInt(raw.replace(/[^0-9]/g,''), 10);
+    if (!num){ return; }
+    if (reduce){ return; }
+    const dur = 1400, start = performance.now();
+    function step(t){
+      const p = Math.min(1, (t-start)/dur);
+      const eased = 1 - Math.pow(1-p, 3);
+      el.textContent = Math.round(num*eased).toLocaleString('en-IN');
+      if (p < 1) requestAnimationFrame(step); else el.textContent = raw;
+    }
+    requestAnimationFrame(step);
+  }
+  if ('IntersectionObserver' in window){
+    const countIO = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{ if (e.isIntersecting){ animateCount(e.target.querySelector('b') || e.target); countIO.unobserve(e.target); } });
+    }, {threshold:.5});
+    document.querySelectorAll('.stat').forEach(el=>countIO.observe(el));
+  }
+
+  /* ---------- Top scroll progress bar ---------- */
+  const scrollBar = document.createElement('div'); scrollBar.id = 'scrollBar'; document.body.appendChild(scrollBar);
+  function updateScrollBar(){ const h = document.documentElement; const p = h.scrollTop/(h.scrollHeight-h.clientHeight)*100; scrollBar.style.width = (isFinite(p) ? p : 0)+'%'; }
+  addEventListener('scroll', updateScrollBar, {passive:true});
+  updateScrollBar();
+
+  /* ---------- Nav blur on scroll ---------- */
+  const navEl = document.querySelector('header.nav');
+  function updateNav(){ if (navEl) navEl.classList.toggle('scrolled', scrollY > 10); }
+  addEventListener('scroll', updateNav, {passive:true});
+  updateNav();
 
   /* ---------- Resize ---------- */
   let rt;
