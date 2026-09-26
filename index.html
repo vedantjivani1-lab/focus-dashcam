@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Focus Dashcam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Teko:wght@500;600&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+</head>
+<body>
+<style>
+  /* Single, deliberate night-drive theme: the page is a viewfinder. */
+  :root{
+    color-scheme: dark;
+    --asphalt:#0E1114;
+    --asphalt-2:#161A1F;
+    --asphalt-3:#1E232A;
+    --line:#2B323B;
+    --fog:#E8EBEE;
+    --mute:#8D96A1;
+    --amber:#F5B81E;      /* road-marking yellow */
+    --amber-ink:#1A1405;
+    --rec:#FF3B30;        /* semantic: recording / impact */
+    --ok:#3DD68C;
+    --display:"Big Shoulders Display", "Arial Narrow", Impact, sans-serif; /* tall upright headings */
+    --stencil:"Big Shoulders Display", "Arial Narrow", Impact, sans-serif; /* big words */
+    --deva:"Teko", "Big Shoulders Display", sans-serif; /* Devanagari to match */
+    --gauge:"Big Shoulders Display", "Arial Narrow", Impact, sans-serif;  /* instrument numbers */
+    --body:"Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono:"Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --g: clamp(16px, 4vw, 48px);
+    --max: 1240px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--asphalt);color:var(--fog);font:16px/1.6 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:4px}
+  .wrap{max-width:var(--max);margin-inline:auto;padding-inline:var(--g)}
+  .mono{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:18px;height:2px;background:currentColor}
+  h1,h2,h3{font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.9;letter-spacing:0;margin:0;text-wrap:balance}
+  h2{font-size:clamp(48px,6.4vw,96px)}
+  h2 .hl{color:var(--amber)}
+  p{margin:0}
+
+  /* ---------- Nav ---------- */
+  .nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--asphalt) 82%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:60px}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-weight:900;font-size:26px;letter-spacing:.01em;text-transform:uppercase}
+  .brand svg{width:30px;height:30px;color:var(--amber)}
+  .nav-links{display:flex;gap:28px;align-items:center}
+  .nav-links a{text-decoration:none;font-size:14px;color:var(--mute);transition:color .2s}
+  .nav-links a:hover{color:var(--fog)}
+  .btn{display:inline-flex;align-items:center;gap:10px;font:600 15px/1 var(--body);text-decoration:none;border:0;cursor:pointer;border-radius:999px;padding:14px 22px;transition:transform .2s, background .2s}
+  .btn-amber{background:var(--amber);color:var(--amber-ink)}
+  .btn-amber:hover{transform:translateY(-2px)}
+  .btn-ghost{background:transparent;color:var(--fog);box-shadow:inset 0 0 0 1px var(--line)}
+  .btn-ghost:hover{box-shadow:inset 0 0 0 1px var(--mute)}
+  .nav .btn{padding:10px 16px;font-size:14px}
+  .nav-links a.btn{color:var(--amber-ink)}
+  @media (max-width:760px){.nav-links a:not(.btn){display:none}}
+
+  /* ---------- Hero ---------- */
+  .hero{position:relative;height:clamp(560px,86vh,800px);overflow:hidden}
+  .hero canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,17,20,.15) 0%,rgba(14,17,20,0) 40%,rgba(14,17,20,.85) 100%);pointer-events:none}
+  .hud{position:absolute;inset:clamp(14px,3vw,32px);z-index:2;pointer-events:none;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:#fff}
+  .hud .corner{position:absolute;width:26px;height:26px;border:2px solid rgba(255,255,255,.75)}
+  .hud .tl{top:0;left:0;border-right:0;border-bottom:0}.hud .tr{top:0;right:0;border-left:0;border-bottom:0}
+  .hud .bl{bottom:0;left:0;border-right:0;border-top:0}.hud .br{bottom:0;right:0;border-left:0;border-top:0}
+  .hud .top{position:absolute;top:10px;left:40px;right:40px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .rec{display:inline-flex;align-items:center;gap:8px}
+  .rec i{width:9px;height:9px;border-radius:50%;background:var(--rec);box-shadow:0 0 10px var(--rec);animation:blink 1.2s steps(2,start) infinite}
+  @keyframes blink{to{visibility:hidden}}
+  .hero-copy{position:absolute;z-index:3;left:0;right:0;bottom:clamp(28px,6vh,64px)}
+  .hero-title{font-family:var(--stencil);font-style:normal;font-stretch:normal;font-variation-settings:normal;font-weight:900;font-size:clamp(96px,24vw,360px);line-height:.78;letter-spacing:.01em;color:var(--fog);margin-left:-.04em}
+  .hero-row{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-top:18px}
+  .hero-row p{max-width:34ch;font-size:clamp(17px,1.6vw,20px);color:#D3D8DD}
+  .hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
+  .speed{position:absolute;right:40px;top:44px;text-align:right}
+  .speed b{display:block;font-family:var(--gauge);font-weight:800;font-size:clamp(44px,6vw,72px);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:0}
+  @media (max-width:640px){.speed{top:40px;right:30px}.speed b{font-size:44px}.hud .top{left:30px;right:30px;flex-direction:column;gap:6px}.hud .gps{display:none}}
+
+  /* ---------- Manifesto ---------- */
+  .manifesto{padding-block:clamp(80px,12vw,160px)}
+  .manifesto .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.4fr);gap:clamp(24px,5vw,80px);align-items:start}
+  .manifesto .mark{width:clamp(80px,10vw,140px);color:var(--amber)}
+  .motto{font:900 clamp(84px,15vw,230px)/.82 var(--stencil);font-style:normal;font-stretch:normal;font-variation-settings:normal;letter-spacing:.01em;text-transform:uppercase;margin:0 0 32px}
+  .motto span{display:block;width:max-content}
+  .motto{white-space:nowrap}
+  .manifesto .wrap > div{min-width:0}
+  .motto .w{color:transparent;-webkit-text-stroke:2px var(--fog)}
+  .motto .e{color:var(--amber)}
+  .manifesto blockquote{margin:0;font-family:var(--body);font-weight:500;font-size:clamp(22px,2.3vw,32px);line-height:1.25;letter-spacing:-.015em;max-width:30ch;color:var(--mute);text-wrap:balance}
+  .manifesto blockquote strong{color:var(--fog);font-weight:600}
+  .manifesto blockquote em{font-style:normal;color:var(--amber);font-weight:600}
+  .sig{margin-top:28px;display:flex;gap:14px;align-items:center;color:var(--mute)}
+  .sig::before{content:"";width:40px;height:1px;background:var(--line)}
+  @media (max-width:700px){.manifesto .wrap{grid-template-columns:1fr}}
+
+  /* ---------- Drive log (horizontal) ---------- */
+  .drivelog{position:relative;border-top:1px solid var(--line)}
+  .drivelog .sticky{padding-block:clamp(56px,8vw,96px);display:flex;flex-direction:column;justify-content:center;gap:clamp(24px,4vh,48px)}
+  .drivelog.pinned .sticky{position:sticky;top:calc(60px + env(safe-area-inset-top,0px));height:calc(100vh - 60px);overflow:hidden;padding-block:28px 24px}
+  .drivelog h2{font-size:clamp(46px,5.6vw,84px)}
+  .drivelog.pinned .clip{width:clamp(270px,min(30vw,52vh),440px)}
+  .drivelog-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+  .drivelog-head p{max-width:38ch;color:var(--mute)}
+  .track{display:flex;gap:clamp(16px,2vw,28px);padding-inline:var(--g);overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-bottom:4px}
+  .track::-webkit-scrollbar{display:none}
+  .drivelog.pinned .track{overflow:visible;width:max-content;will-change:transform}
+  .clip{flex:0 0 auto;width:clamp(270px,32vw,440px);scroll-snap-align:start;display:flex;flex-direction:column;gap:14px}
+  .clip:nth-child(even){margin-top:clamp(0px,4vh,48px)}
+  .clip .frame{position:relative;aspect-ratio:4/3;max-width:100%;border-radius:6px;overflow:hidden;background:var(--asphalt-2)}
+  .clip canvas{width:100%;height:100%;display:block}
+  .clip .stamp{position:absolute;left:10px;bottom:8px;right:10px;display:flex;justify-content:space-between;font:500 11px/1 var(--mono);color:#fff;text-shadow:0 1px 2px #000}
+  .clip .tag{position:absolute;top:10px;left:10px;font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:6px 8px;border-radius:3px;background:rgba(0,0,0,.55);color:#fff}
+  .clip .tag.alert{background:var(--rec)}
+  .clip .tag.lock{background:var(--amber);color:var(--amber-ink)}
+  .clip .plate{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);border:2px solid var(--amber);padding:3px 6px;font:500 11px/1 var(--mono);color:var(--amber);background:rgba(0,0,0,.5);white-space:nowrap}
+  .clip .where{font:12px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+  .clip h3{font-size:clamp(26px,2.3vw,34px);line-height:1}
+  .clip p{color:#BAC1C9;font-size:15px;max-width:40ch}
+  .progress{height:2px;background:var(--line);margin-inline:var(--g);position:relative;display:none}
+  .drivelog.pinned .progress{display:block}
+  .progress i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--amber)}
+
+  /* ---------- Split: on the road / after the drive ---------- */
+  .split{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .split a{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:48px;min-height:clamp(360px,48vw,560px);padding:clamp(24px,4vw,56px);text-decoration:none;overflow:hidden;isolation:isolate}
+  .split a + a{border-left:1px solid var(--line)}
+  .split a::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--amber);transform:translateY(101%);transition:transform .55s cubic-bezier(.7,0,.2,1)}
+  .split a:hover::before,.split a:focus-visible::before{transform:none}
+  .split a:hover,.split a:focus-visible{color:var(--amber-ink)}
+  .split a:hover p,.split a:focus-visible p,.split a:hover .mono,.split a:focus-visible .mono{color:var(--amber-ink)}
+  .split h2{font-size:clamp(56px,7.4vw,112px);transition:transform .55s cubic-bezier(.7,0,.2,1)}
+  .split a:hover h2{transform:translateX(12px)}
+  .split p{max-width:32ch;color:var(--mute);font-size:17px}
+  .split p b{color:inherit;font-weight:600}
+  .split .foot{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+  .split .arrow{font-family:var(--gauge);font-weight:800;font-size:44px;line-height:1}
+  @media (max-width:760px){.split{grid-template-columns:1fr}.split a + a{border-left:0;border-top:1px solid var(--line)}}
+
+  /* ---------- Modes gallery (hover reveal) ---------- */
+  .modes{padding-block:clamp(80px,11vw,150px)}
+  .modes-head{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:end;margin-bottom:clamp(32px,5vw,64px)}
+  .modes-head p{color:var(--mute);max-width:42ch}
+  @media (max-width:760px){.modes-head{grid-template-columns:1fr}}
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,20px)}
+  @media (max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:460px){.grid{grid-template-columns:1fr}}
+  .mode{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:12px}
+  .mode .frame{position:relative;aspect-ratio:3/4;max-width:100%;border-radius:6px;overflow:hidden;background:var(--asphalt-2)}
+  .mode canvas{width:100%;height:100%;display:block;transition:transform .7s cubic-bezier(.2,.7,.2,1), filter .5s}
+  .mode .overlay{position:absolute;inset:12px;font:500 11px/1.3 var(--mono);letter-spacing:.05em;color:#fff;opacity:0;transition:opacity .35s;pointer-events:none;text-shadow:0 1px 2px #000}
+  .mode .overlay .corner{position:absolute;width:16px;height:16px;border:2px solid var(--amber)}
+  .mode .overlay .tl{top:0;left:0;border-right:0;border-bottom:0}.mode .overlay .tr{top:0;right:0;border-left:0;border-bottom:0}
+  .mode .overlay .bl{bottom:0;left:0;border-right:0;border-top:0}.mode .overlay .br{bottom:0;right:0;border-left:0;border-top:0}
+  .mode .overlay .t{position:absolute;top:24px;left:6px;right:6px;display:flex;justify-content:space-between}
+  .mode .overlay .b{position:absolute;bottom:24px;left:6px;right:6px;display:flex;justify-content:space-between;align-items:flex-end}
+  .mode .overlay .kmh{font:800 34px/1 var(--gauge);letter-spacing:0}
+  .mode:hover canvas,.mode:focus-visible canvas,.mode.on canvas{transform:scale(1.06);filter:saturate(1.15) contrast(1.08)}
+  .mode:hover .overlay,.mode:focus-visible .overlay,.mode.on .overlay{opacity:1}
+  .mode .meta{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .mode h3{font-size:28px}
+  .mode .meta span{font:12px var(--mono);color:var(--mute);letter-spacing:.06em;text-transform:uppercase}
+  .hint{margin-top:20px;color:var(--mute)}
+
+  /* ---------- Tap to lock (impact demo) ---------- */
+  .impact{background:var(--asphalt-2);border-block:1px solid var(--line);padding-block:clamp(72px,10vw,130px)}
+  .impact .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:clamp(32px,5vw,72px);align-items:center}
+  @media (max-width:860px){.impact .wrap{grid-template-columns:1fr}}
+  .impact-copy{display:flex;flex-direction:column;gap:20px}
+  .impact-copy p{color:var(--mute);max-width:42ch}
+  .console{background:var(--asphalt);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .console-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);font:12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+  .status{display:inline-flex;align-items:center;gap:8px;padding:5px 10px;border-radius:999px;background:rgba(61,214,140,.12);color:var(--ok)}
+  .status i{width:7px;height:7px;border-radius:50%;background:currentColor}
+  .status.alert{background:rgba(255,59,48,.14);color:var(--rec)}
+  .gchart{display:block;width:100%;height:220px}
+  .console-foot{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding:14px 16px;border-top:1px solid var(--line)}
+  .readout{display:flex;gap:22px;font:12px var(--mono);color:var(--mute);letter-spacing:.05em;text-transform:uppercase}
+  .readout b{display:block;font:800 28px/1 var(--gauge);color:var(--fog);letter-spacing:0;font-variant-numeric:tabular-nums}
+  .sos{margin:0 16px 16px;padding:16px;border-radius:8px;background:var(--asphalt-3);border:1px solid var(--line)}
+  .sos .mono{color:var(--amber);margin-bottom:8px}
+  .sos p{font-size:15px;color:#D6DBE0}
+  .sos small{display:block;margin-top:10px;color:var(--mute);font-size:13px}
+
+  /* ---------- Marquee ---------- */
+  .marquee{overflow:hidden;border-bottom:1px solid var(--line);padding-block:26px;white-space:nowrap}
+  .marquee-inner{display:inline-flex;gap:48px;animation:slide 38s linear infinite;font-family:var(--display);font-weight:800;letter-spacing:.01em;text-transform:uppercase;font-size:clamp(30px,3.6vw,48px);color:var(--mute)}
+  .marquee-inner span{display:inline-flex;align-items:center;gap:48px}
+  .marquee-inner span::after{content:"";width:14px;height:14px;background:var(--amber);transform:rotate(45deg)}
+  @keyframes slide{to{transform:translateX(-50%)}}
+
+  /* ---------- Pricing ---------- */
+  .pricing{padding-block:clamp(80px,11vw,150px)}
+  .pricing .wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(32px,6vw,96px);align-items:center}
+  @media (max-width:860px){.pricing .wrap{grid-template-columns:1fr}}
+  .price-card{border:1px solid var(--line);border-radius:10px;padding:clamp(24px,3vw,40px);background:linear-gradient(160deg,var(--asphalt-2),var(--asphalt))}
+  .price{display:flex;align-items:baseline;gap:8px;margin-block:10px 4px}
+  .price b{font:900 clamp(96px,12vw,160px)/.85 var(--stencil);color:var(--amber)}
+  .price .rupee{font:800 .5em/1 var(--display);vertical-align:.7em;margin-right:.06em;color:var(--amber)}
+  .price > span{font:500 16px var(--mono);color:var(--mute)}
+  .price .permonth{font:500 13px var(--mono);color:var(--mute);margin-left:4px}
+  .price-card ul{list-style:none;padding:0;margin:28px 0;display:grid;gap:12px}
+  .price-card li{display:flex;gap:12px;align-items:baseline;color:#D3D8DD}
+  .price-card li::before{content:"";flex:0 0 8px;height:8px;margin-top:2px;background:var(--amber);transform:rotate(45deg)}
+  .fine{color:var(--mute);font-size:14px;margin-top:14px}
+  .stores{display:flex;gap:12px;flex-wrap:wrap}
+  .store{display:inline-flex;flex-direction:column;gap:2px;padding:10px 18px;border-radius:10px;box-shadow:inset 0 0 0 1px var(--line)}
+  .store small{font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+  .store b{font-weight:600}
+
+  /* ---------- Footer ---------- */
+  footer{padding-block:clamp(56px,8vw,100px) 36px;overflow:hidden}
+  .footer-big{font:900 14vw/.84 var(--stencil);letter-spacing:.01em;text-transform:uppercase;white-space:nowrap;margin-bottom:48px;max-width:100%}
+  .footer-big span{display:block;width:max-content;color:var(--asphalt-3);-webkit-text-stroke:1px var(--line);transition:color .5s}
+  .footer-big i{font-style:normal;color:var(--amber);-webkit-text-stroke:0}
+  .footer-big:hover span{color:var(--amber);-webkit-text-stroke:0}
+  .footer-tag{font:500 13px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:-28px 0 40px}
+  .footer-row{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;color:var(--mute);font-size:14px}
+  .footer-row nav{display:flex;gap:22px;flex-wrap:wrap}
+  .footer-row nav a{text-decoration:none}
+  .footer-row nav a:hover{color:var(--fog)}
+
+  /* ---------- Sakshi line ---------- */
+  .sakshi{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 20px;margin:-8px 0 36px}
+  .sakshi b{font:600 clamp(44px,6.4vw,96px)/.9 var(--deva);color:var(--fog);letter-spacing:.01em}
+  .sakshi b i{font-style:normal;color:var(--amber)}
+  .sakshi small{color:var(--mute)}
+
+  /* ---------- Vision ---------- */
+  .vision{border-top:1px solid var(--line);padding-block:clamp(80px,11vw,150px);background:var(--asphalt-2)}
+  .vision-head{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(24px,5vw,72px);align-items:end}
+  .vision-head p{color:#C9CFD6;font-size:clamp(17px,1.5vw,19px);max-width:46ch}
+  .vision-head p + p{margin-top:14px}
+  @media (max-width:860px){.vision-head{grid-template-columns:1fr}}
+  .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-block:1px solid var(--line);margin-block:clamp(40px,6vw,72px) 12px}
+  .stat{padding:clamp(20px,3vw,36px) clamp(12px,2vw,24px) clamp(20px,3vw,32px) 0}
+  .stat + .stat{border-left:1px solid var(--line);padding-left:clamp(16px,2.4vw,32px)}
+  .stat b{display:block;font:900 clamp(52px,6.2vw,92px)/.85 var(--gauge);color:var(--fog);font-variant-numeric:tabular-nums}
+  .stat:last-child b{color:var(--amber)}
+  .stat span{display:block;margin-top:10px;color:var(--mute);font-size:15px;max-width:22ch}
+  @media (max-width:640px){.stats{grid-template-columns:1fr}.stat + .stat{border-left:0;border-top:1px solid var(--line);padding-left:0}}
+  .source{color:var(--mute)}
+  .source a{color:var(--mute)}
+  .pillars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,20px);margin-top:clamp(40px,6vw,72px)}
+  @media (max-width:860px){.pillars{grid-template-columns:1fr}}
+  .pillar{border:1px solid var(--line);border-radius:10px;padding:clamp(22px,2.6vw,32px);background:var(--asphalt);display:flex;flex-direction:column;gap:14px}
+  .pillar .num{font:800 15px var(--mono);color:var(--amber);letter-spacing:.1em}
+  .pillar h3{font-size:clamp(32px,3vw,42px)}
+  .pillar p{color:#BAC1C9;font-size:15.5px}
+  .aim{margin-top:clamp(56px,8vw,104px);display:flex;flex-direction:column;gap:20px}
+  .aim-text{color:#C9CFD6;font-size:clamp(17px,1.5vw,19px);max-width:58ch}
+  .mission{margin:0;font:900 clamp(40px,5.6vw,84px)/.92 var(--display);text-transform:uppercase;max-width:18ch;text-wrap:balance}
+  .mission span{color:var(--amber)}
+
+  /* ---------- Privacy ---------- */
+  .privacy{padding-block:clamp(80px,11vw,150px)}
+  .privacy-head{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:end;margin-bottom:clamp(32px,5vw,64px)}
+  .privacy-head p{color:var(--mute);max-width:42ch}
+  @media (max-width:760px){.privacy-head{grid-template-columns:1fr}}
+  .ptiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
+  @media (max-width:900px){.ptiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:520px){.ptiles{grid-template-columns:1fr}}
+  .ptile{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:clamp(22px,2.6vw,34px);display:flex;flex-direction:column;gap:12px;min-height:220px;transition:background .3s}
+  .ptile:hover{background:var(--asphalt-2)}
+  .ptile svg{width:28px;height:28px;color:var(--amber)}
+  .ptile h3{font-size:clamp(28px,2.4vw,34px)}
+  .ptile p{color:#BAC1C9;font-size:15px}
+
+  /* ---------- Waitlist ---------- */
+  .waitlist{border:1px solid var(--amber);border-radius:10px;padding:clamp(20px,2.4vw,28px);display:flex;flex-direction:column;gap:14px;background:rgba(245,184,30,.06)}
+  .waitlist h3{font-size:clamp(34px,3.2vw,46px)}
+  .waitlist p{color:#C9CFD6;max-width:44ch}
+  .waitlist small{color:var(--mute);font-size:13px}
+
+  /* ---------- FAQ ---------- */
+  .faq{border-top:1px solid var(--line);padding-block:clamp(80px,11vw,150px)}
+  .faq .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:clamp(32px,6vw,96px);align-items:start}
+  @media (max-width:860px){.faq .wrap{grid-template-columns:1fr}}
+  .faq-head{display:flex;flex-direction:column;gap:20px}
+  .faq-head p{color:var(--mute);max-width:34ch}
+  .qa{border-top:1px solid var(--line)}
+  .qa:last-child{border-bottom:1px solid var(--line)}
+  .qa summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:22px 0;font:800 clamp(24px,2.2vw,32px)/1.05 var(--display);text-transform:uppercase}
+  .qa summary::-webkit-details-marker{display:none}
+  .qa summary::after{content:"+";font:500 28px/1 var(--mono);color:var(--amber);transition:transform .3s;flex:0 0 auto}
+  .qa[open] summary::after{transform:rotate(45deg)}
+  .qa summary:hover{color:var(--amber)}
+  .qa div{padding:0 0 24px;color:#BAC1C9;max-width:62ch}
+  .qa div p + p{margin-top:10px}
+
+  /* ---------- Legal ---------- */
+  .legal{border-top:1px solid var(--line);padding-block:clamp(56px,8vw,96px);background:var(--asphalt-2)}
+  .legal .wrap{display:grid;gap:14px}
+  .doc{border:1px solid var(--line);border-radius:10px;background:var(--asphalt);scroll-margin-top:80px}
+  .doc > summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px clamp(18px,2.4vw,30px);font:900 clamp(30px,3vw,42px)/1 var(--display);text-transform:uppercase}
+  .doc > summary::-webkit-details-marker{display:none}
+  .doc > summary span{font:12px var(--mono);letter-spacing:.08em;color:var(--mute);text-transform:uppercase}
+  .doc > summary:hover{color:var(--amber)}
+  .doc-body{padding:0 clamp(18px,2.4vw,30px) 30px;color:#BAC1C9;font-size:15px;max-width:78ch}
+  .doc-body h4{font:600 17px var(--body);color:var(--fog);margin:26px 0 6px}
+  .doc-body p + p{margin-top:8px}
+  .doc-body b{color:var(--fog);font-weight:600}
+  .footer-note{margin-top:28px;color:var(--mute);font-size:13px;max-width:80ch}
+
+  /* ---------- Setup kit ---------- */
+  .kit{border-top:1px solid var(--line);background:var(--asphalt-2);padding-block:clamp(80px,11vw,150px)}
+  .kit-head{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(24px,5vw,72px);align-items:end;margin-bottom:clamp(36px,5vw,64px)}
+  .kit-head p{color:#C9CFD6;font-size:clamp(17px,1.5vw,19px);max-width:44ch}
+  @media (max-width:860px){.kit-head{grid-template-columns:1fr}}
+  .kit-grid{display:grid;grid-template-columns:1fr 1.35fr 1fr;gap:clamp(12px,1.6vw,20px)}
+  @media (max-width:900px){.kit-grid{grid-template-columns:1fr}}
+  .kit-item{border:1px solid var(--line);border-radius:10px;background:var(--asphalt);padding:clamp(22px,2.6vw,32px);display:flex;flex-direction:column;gap:14px}
+  .kit-item svg{width:34px;height:34px;color:var(--amber)}
+  .kit-item .num{font:500 12px var(--mono);letter-spacing:.1em;color:var(--mute);text-transform:uppercase}
+  .kit-item h3{font-size:clamp(32px,3vw,44px)}
+  .kit-item p{color:#BAC1C9;font-size:15.5px}
+  .kit-item.key{border-color:var(--amber);background:rgba(245,184,30,.06)}
+  .kit-item.key .num{color:var(--amber)}
+  .kit-item ul{list-style:none;padding:0;margin:4px 0 0;display:grid;gap:10px}
+  .kit-item li{display:flex;gap:12px;align-items:baseline;color:#D3D8DD;font-size:15px}
+  .kit-item li::before{content:"";flex:0 0 7px;height:7px;background:var(--amber);transform:rotate(45deg)}
+  .kit-tips{margin-top:clamp(20px,3vw,32px);display:flex;flex-wrap:wrap;gap:10px}
+  .kit-tips span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--fog);padding:9px 14px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line)}
+
+  /* ---------- Cinematic layer ---------- */
+  .grain{position:fixed;inset:-50%;width:200%;height:200%;z-index:90;pointer-events:none;opacity:.055;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    animation:grain .9s steps(6) infinite}
+  @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-4%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
+
+  /* headlight that follows the pointer across the hero */
+  .headlight{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .6s;
+    background:radial-gradient(420px 260px at var(--hx,50%) var(--hy,60%),rgba(255,236,190,.16),rgba(255,236,190,.05) 45%,transparent 70%);mix-blend-mode:screen}
+  .hero:hover .headlight{opacity:1}
+  .hero-copy .wrap{text-shadow:0 2px 24px rgba(0,0,0,.45)}
+
+  /* letter-by-letter rise on load */
+  .hero-title{display:flex;overflow:hidden;padding-block:.06em .02em}
+  .hero-title .l{display:inline-block;animation:rise 1.1s cubic-bezier(.16,.84,.24,1) both;animation-delay:calc(var(--i) * 75ms + 120ms)}
+  .hero-title .dot{color:var(--amber)}
+  @keyframes rise{from{transform:translateY(108%) skewY(6deg)}}
+  .hero-row{animation:fadeup .9s .7s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes fadeup{from{transform:translateY(18px);opacity:.001}}
+
+  /* painted lane divider */
+  .lane{height:6px;background:repeating-linear-gradient(90deg,var(--amber) 0 56px,transparent 56px 112px);opacity:.9;
+    animation:lane 1.1s linear infinite;-webkit-mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+  @keyframes lane{to{background-position:-112px 0}}
+
+  /* motto drift */
+  .manifesto{overflow:hidden}
+  .motto span{will-change:transform;transition:transform .1s linear}
+
+  /* tilt + glass sheen on footage frames */
+  .clip .frame,.mode .frame{transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .5s cubic-bezier(.2,.7,.2,1), box-shadow .5s;transform-style:preserve-3d}
+  .clip .frame::after,.mode .frame::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s;
+    background:radial-gradient(360px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.16),transparent 55%)}
+  .clip .frame:hover,.mode:hover .frame{box-shadow:0 30px 60px -20px rgba(0,0,0,.8),0 0 0 1px rgba(245,184,30,.35)}
+  .clip .frame:hover::after,.mode:hover .frame::after{opacity:1}
+  .clip .frame canvas{transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+  .clip .frame:hover canvas{transform:scale(1.05)}
+
+  /* glowing buttons */
+  .btn-amber{box-shadow:0 0 0 rgba(245,184,30,0);transition:transform .2s, box-shadow .3s}
+  .btn-amber:hover{box-shadow:0 10px 34px -6px rgba(245,184,30,.55)}
+
+  /* cards lift toward you */
+  .pillar,.kit-item,.ptile{transition:transform .4s cubic-bezier(.2,.7,.2,1), border-color .4s, background .3s, box-shadow .4s}
+  .pillar:hover,.kit-item:hover{transform:translateY(-4px);border-color:rgba(245,184,30,.45);box-shadow:0 24px 50px -24px rgba(0,0,0,.8)}
+
+  /* impact section reacts */
+  .impact{position:relative;transition:background-color .4s}
+  .impact::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .5s;
+    background:radial-gradient(60% 70% at 70% 50%,rgba(255,59,48,.14),transparent 70%)}
+  .impact.hit::before{opacity:1}
+  .console.shake{animation:shake .45s cubic-bezier(.36,.07,.19,.97)}
+  @keyframes shake{10%,90%{transform:translate(-1px,1px)}20%,80%{transform:translate(3px,-2px)}30%,50%,70%{transform:translate(-6px,2px) rotate(-.4deg)}40%,60%{transform:translate(6px,-1px) rotate(.4deg)}}
+
+  /* price card: a tail-light trail circling the border */
+  @property --ang{syntax:'<angle>';inherits:false;initial-value:0deg}
+  .pricing{position:relative;overflow:hidden}
+  .pricing::before{content:"";position:absolute;right:-10%;top:10%;width:60%;height:80%;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(245,184,30,.13),transparent);filter:blur(10px)}
+  .price-card{position:relative;border:1px solid transparent !important;
+    background:linear-gradient(160deg,var(--asphalt-2),var(--asphalt)) padding-box,
+      conic-gradient(from var(--ang),var(--line) 0 62%,rgba(245,184,30,.2) 72%,var(--amber) 80%,var(--line) 86%) border-box !important;
+    animation:trail 6s linear infinite}
+  @keyframes trail{to{--ang:360deg}}
+
+  /* footer glow */
+  .footer-big span{transition:color .5s, text-shadow .5s}
+  .footer-big:hover span{text-shadow:0 0 60px rgba(245,184,30,.35)}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    .marquee-inner,.rec i,.grain,.lane,.hero-title .l,.hero-row,.price-card{animation:none}
+    *{transition:none!important}
+  }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 48 48">
+    <path d="M4 17 Q24 1 44 17 Q24 33 4 17Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="24" cy="21" r="5.5" fill="currentColor"/>
+    <path d="M11 47 L21.5 31 M37 47 L26.5 31" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    <path d="M24 35 V38 M24 42 V46" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<div class="grain" aria-hidden="true"></div>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Focus home"><svg aria-hidden="true"><use href="#mark"/></svg>Focus</a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#why">Why Focus</a>
+      <a href="#drive-log">How it works</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#setup">Setup</a>
+      <a href="#faq">FAQ</a>
+      <a href="#pricing">Pricing</a>
+      <a class="btn btn-amber" href="#waitlist">Join the waitlist</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero" aria-label="Focus dashcam">
+    <canvas id="heroCanvas" aria-hidden="true"></canvas>
+    <div class="headlight" id="headlight" aria-hidden="true"></div>
+    <div class="hud" aria-hidden="true">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="top">
+        <span class="rec"><i></i>REC <span id="recTime">00:00:00</span></span>
+        <span class="gps">21.1702° N &nbsp;72.8311° E</span>
+        <span id="clock">--</span>
+      </div>
+      <div class="speed"><b id="kmh">52</b>KM/H</div>
+    </div>
+    <div class="hero-copy">
+      <div class="wrap">
+        <h1 class="hero-title" aria-label="Focus"><span class="l" style="--i:0" aria-hidden="true">F</span><span class="l" style="--i:1" aria-hidden="true">o</span><span class="l" style="--i:2" aria-hidden="true">c</span><span class="l" style="--i:3" aria-hidden="true">u</span><span class="l" style="--i:4" aria-hidden="true">s</span><span class="l dot" style="--i:5" aria-hidden="true">.</span></h1>
+        <div class="hero-row">
+          <p><b style="color:var(--amber)">Your witness on the road. Your evidence after.</b><br>The dashcam that lives in your phone.</p>
+          <div class="hero-ctas">
+            <a class="btn btn-amber" href="#waitlist">Join the waitlist</a>
+            <a class="btn btn-ghost" href="#drive-log">See how it works</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="lane" aria-hidden="true"></div>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto">
+    <div class="wrap">
+      <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><use href="#mark"/></svg>
+      <div>
+        <div class="eyebrow" style="margin-bottom:24px">Our motto</div>
+        <h2 class="motto" id="motto"><span class="w">Witness.</span><span class="e">Evidence.</span></h2>
+        <div class="sakshi"><b lang="sa">साक्षी <i>·</i> प्रमाण</b><small class="mono">Sakshi · Pramana: witness and proof</small></div>
+        <blockquote>
+          On the road, Focus is the <strong>witness</strong> that sees everything. After the drive, it's the <em>evidence</em> no one can argue with.
+        </blockquote>
+        <div class="sig mono">Team Focus · Gen-Z Digital, India</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VISION -->
+  <section class="vision" id="why" aria-labelledby="why-title">
+    <div class="wrap">
+      <div class="vision-head">
+        <div>
+          <div class="eyebrow" style="margin-bottom:16px">Why we built Focus</div>
+          <h2 id="why-title">Made for<br><span class="hl">Indian roads</span></h2>
+        </div>
+        <div>
+          <p>After a crash in India, what happened often comes down to your word against theirs. Hit-and-runs leave no one to answer. Insurance claims stall without proof. And the crowd that gathers usually sides with whoever shouts loudest.</p>
+          <p>Hardware dashcams cost thousands of rupees and need fitting, so most cars still drive without a witness. Almost every driver already carries a phone. Focus turns that phone into the witness.</p>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>5,13,563</b><span>road accidents in India in 2025</span></div>
+        <div class="stat"><b>1,83,382</b><span>people killed on Indian roads that year</span></div>
+        <div class="stat"><b>21</b><span>deaths every hour, on average</span></div>
+      </div>
+      <p class="source mono">Source: <a href="https://telanganatoday.com/india-saw-5-13-lakh-road-accidents-in-2025-with-21-deaths-every-hour-nitin-gadkari-tells-parliament" target="_blank" rel="noopener">MoRTH figures given to the Lok Sabha, July 2026</a></p>
+      <div class="pillars">
+        <article class="pillar">
+          <span class="num">01 · SAFETY</span>
+          <h3>Help knows where you are</h3>
+          <p>When Focus detects a crash, it locks the clip and gets a text ready for your emergency contact, with your exact location. You check it and send it.</p>
+        </article>
+        <article class="pillar">
+          <span class="num">02 · SECURITY</span>
+          <h3>Proof that stays put</h3>
+          <p>Crash clips are locked so loop recording can't overwrite them. Your footage stays on your phone unless you choose to back it up.</p>
+        </article>
+        <article class="pillar">
+          <span class="num">03 · INSURANCE</span>
+          <h3>Claims with evidence</h3>
+          <p>Every clip carries the time, your speed and GPS location in the video itself. Share the original file with your insurer or the police to back up what you say happened.</p>
+        </article>
+      </div>
+      <div class="aim">
+        <div class="eyebrow">Our aim</div>
+        <p class="mission">A witness in every car in India, <span>for ₹1 a day.</span></p>
+        <p class="aim-text">Every driver in India should have proof of what happened on the road, not just those who can afford a hardware dashcam. When everyone has a record they can trust, disputes get fairer, insurance claims have evidence behind them, and people drive more carefully.</p>
+      </div>
+      <div class="sig mono">Team Focus · GEN - Z DIGITAL PRIVATE LIMITED</div>
+    </div>
+  </section>
+
+  <!-- DRIVE LOG: horizontal scroll -->
+  <section class="drivelog" id="drive-log" aria-label="What Focus does on a drive">
+    <div class="sticky">
+      <div class="wrap drivelog-head">
+        <div>
+          <div class="eyebrow" style="margin-bottom:16px">Drive log</div>
+          <h2>One drive,<br><span class="hl">eight moments</span></h2>
+        </div>
+        <p>Here's what Focus does between leaving the house and parking the car. Keep scrolling to follow the drive.</p>
+      </div>
+      <div class="track" id="track">
+        <article class="clip">
+          <div class="frame"><canvas data-scene="dawn" data-seed="3"></canvas><span class="tag">Loop · 3 min segments</span><div class="stamp"><span>06:12:40</span><span>48 KM/H</span></div></div>
+          <div class="where">NH48 · Surat → Vadodara · 06:12</div>
+          <h3>Always recording, never full</h3>
+          <p>Focus records in short loops and overwrites the oldest footage when it hits your storage limit. Nothing to start, nothing to clear.</p>
+        </article>
+        <article class="clip">
+          <div class="frame"><canvas data-scene="day" data-seed="7"></canvas><span class="plate">GJ 05 ·· ····</span><span class="tag">Plate read · on-device</span><div class="stamp"><span>08:47:03</span><span>31 KM/H</span></div></div>
+          <div class="where">Ring Road · Surat · 08:47</div>
+          <h3>Reads the plate ahead</h3>
+          <p>Focus reads number plates on your phone and never uploads a frame, so you can prove who cut you off.</p>
+        </article>
+        <article class="clip">
+          <div class="frame"><canvas data-scene="dusk" data-seed="11"></canvas><span class="tag">Speed + GPS burned in</span><div class="stamp"><span>21.2049 N 72.8407 E</span><span>64 KM/H</span></div></div>
+          <div class="where">Dumas Road · 18:31</div>
+          <h3>Telemetry you can't argue with</h3>
+          <p>Speed, time and coordinates are written into the video itself, so every exported clip carries its own evidence.</p>
+        </article>
+        <article class="clip">
+          <div class="frame"><canvas data-scene="night" data-seed="19" data-flash="1"></canvas><span class="tag alert">Impact · 2.6 g</span><div class="stamp"><span>21:08:55</span><span>0 KM/H</span></div></div>
+          <div class="where">Athwa Gate · 21:08</div>
+          <h3>Crash? Clip locked.</h3>
+          <p>A sudden spike on the accelerometer locks the clip, so loop recording can never overwrite it.</p>
+        </article>
+        <article class="clip">
+          <div class="frame"><canvas data-scene="night" data-seed="23"></canvas><span class="tag lock">SOS ready</span><div class="stamp"><span>21:09:12</span><span>GPS FIX</span></div></div>
+          <div class="where">Athwa Gate · 21:09</div>
+          <h3>A message, already written</h3>
+          <p>Focus drafts a text to your emergency contact with your exact location. You check it and hit send.</p>
+        </article>
+        <article class="clip">
+          <div class="frame"><canvas data-scene="monsoon" data-seed="29"></canvas><span class="tag">Cloud backup · optional</span><div class="stamp"><span>21:15:00</span><span>UPLOADED</span></div></div>
+          <div class="where">Home · 21:15</div>
+          <h3>Backed up before you're home</h3>
+          <p>Turn on cloud backup and locked crash clips copy themselves off the phone. Leave it off and they stay on the phone.</p>
+        </article>
+        <article class="clip">
+          <div class="frame"><canvas data-scene="tunnel" data-seed="31"></canvas><span class="tag">3 clips · 42 km</span><div class="stamp"><span>DRIVE #118</span><span>1 H 04 M</span></div></div>
+          <div class="where">Clip browser · later</div>
+          <h3>Clips sorted by drive</h3>
+          <p>Footage is grouped into drives, so you look for "Tuesday's commute", not file 0047.mp4.</p>
+        </article>
+        <article class="clip">
+          <div class="frame"><canvas data-scene="ghat" data-seed="37"></canvas><span class="tag">8 GB limit · 1080p</span><div class="stamp"><span>SETTINGS</span><span>ZOOM 1.0×</span></div></div>
+          <div class="where">Settings · anytime</div>
+          <h3>Your phone, your rules</h3>
+          <p>Choose quality, zoom and how much storage Focus is allowed to use. It stays inside that limit.</p>
+        </article>
+      </div>
+      <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+    </div>
+  </section>
+
+  <!-- SPLIT -->
+  <section class="split" aria-label="Features">
+    <a href="#drive-log">
+      <div class="mono" style="color:var(--mute)">While you drive</div>
+      <h2>On the<br>road</h2>
+      <div class="foot"><p>Loop recording, <b>crash detection</b>, a live speed and GPS overlay, and plate reading.</p><span class="arrow" aria-hidden="true">↗</span></div>
+    </a>
+    <a href="#impact">
+      <div class="mono" style="color:var(--mute)">When you're parked</div>
+      <h2>After the<br>drive</h2>
+      <div class="foot"><p>Clips grouped by drive, <b>locked evidence</b>, an SOS message composer and optional cloud backup.</p><span class="arrow" aria-hidden="true">↗</span></div>
+    </a>
+  </section>
+
+  <!-- MODES -->
+  <section class="modes" id="modes">
+    <div class="wrap">
+      <div class="modes-head">
+        <div>
+          <div class="eyebrow" style="margin-bottom:16px">Every hour, every road</div>
+          <h2>What Focus<br>sees</h2>
+        </div>
+        <p>From 6 a.m. highways to monsoon nights, the overlay stays readable. Hover over (or tap) a scene to see what's burned into the clip.</p>
+      </div>
+      <div class="grid" id="modeGrid"></div>
+      <p class="hint mono">Illustrated scenes · the overlay layout matches the app</p>
+    </div>
+  </section>
+
+  <!-- IMPACT DEMO -->
+  <section class="impact" id="impact">
+    <div class="wrap">
+      <div class="impact-copy">
+        <div class="eyebrow">Tap to lock</div>
+        <h2>Feel the<br><span class="hl">jolt</span></h2>
+        <p>Focus watches the accelerometer the whole time you're recording. When the force jumps past the threshold, it locks the footage from before and after the impact and gets your SOS message ready.</p>
+        <p>Try it: simulate an impact and watch the clip lock.</p>
+        <div><button class="btn btn-amber" id="impactBtn" type="button">Simulate an impact</button></div>
+      </div>
+      <div class="console" aria-live="polite">
+        <div class="console-bar"><span>G-force · live</span><span class="status" id="status"><i></i><span id="statusText">Recording</span></span></div>
+        <canvas class="gchart" id="gChart" aria-label="Accelerometer trace with a 2.0 g lock threshold"></canvas>
+        <div class="console-foot">
+          <div class="readout"><div><b id="gNow">1.00</b>G now</div><div><b id="gPeak">1.00</b>Peak</div><div><b id="locked">0</b>Locked</div></div>
+          <span class="mono" style="color:var(--mute)">Lock threshold 2.0 g</span>
+        </div>
+        <div class="sos" id="sos" hidden>
+          <div class="mono">SOS draft · ready for you to send</div>
+          <p id="sosText"></p>
+          <small>Focus never sends this by itself. You review it and choose who gets it.</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVACY -->
+  <section class="privacy" id="privacy" aria-labelledby="privacy-title">
+    <div class="wrap">
+      <div class="privacy-head">
+        <div>
+          <div class="eyebrow" style="margin-bottom:16px">Where your footage lives</div>
+          <h2 id="privacy-title">Your footage<br><span class="hl">stays yours</span></h2>
+        </div>
+        <p>Evidence is only worth something if you trust where it's kept. Focus keeps your drives on your phone, and nothing leaves it unless you say so.</p>
+      </div>
+      <div class="ptiles">
+        <div class="ptile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg><h3>On your phone</h3><p>Clips are saved on your phone by default. We don't get a copy.</p></div>
+        <div class="ptile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 9v3a3 3 0 0 0 5.1 2.1M15 10V5a3 3 0 0 0-5.9-.7"/><path d="M5 11a7 7 0 0 0 11.9 5M19 11a7 7 0 0 1-.4 2.3M12 18v3M3 3l18 18"/></svg><h3>Video only</h3><p>Focus never records audio. Your conversations in the car stay private.</p></div>
+        <div class="ptile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 12h2M11 12h2M15 12h2"/></svg><h3>Plates read on-device</h3><p>Number plates are read by machine learning running on your phone. No frame is uploaded to read them.</p></div>
+        <div class="ptile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.5-9 6 6 0 0 1 11.5 1.5A3.8 3.8 0 0 1 17.5 18z"/><path d="M12 11v5M9.5 13.5 12 11l2.5 2.5"/></svg><h3>Backup is opt-in</h3><p>Cloud backup is off until you turn it on. Even then, only locked crash clips upload.</p></div>
+        <div class="ptile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></svg><h3>You press send</h3><p>The SOS text is a draft. Focus never messages anyone on its own.</p></div>
+        <div class="ptile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><h3>You're in control</h3><p>Turn off camera, location or motion access anytime in your phone's Settings. Plate reading and backup switch off in the app.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETUP KIT -->
+  <section class="kit" id="setup" aria-labelledby="setup-title">
+    <div class="wrap">
+      <div class="kit-head">
+        <div>
+          <div class="eyebrow" style="margin-bottom:16px">Before your first drive</div>
+          <h2 id="setup-title">Get a stand.<br><span class="hl">It matters.</span></h2>
+        </div>
+        <p>Focus can only record what your phone can see. A phone lying on the dashboard or sliding around a cup holder records the ceiling, the floor or a blur. A sturdy stand is what turns your phone into a proper dashcam.</p>
+      </div>
+      <div class="kit-grid">
+        <div class="kit-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>
+          <span class="num">01 · You have this</span>
+          <h3>Your phone</h3>
+          <p>Any iPhone or Android phone with Focus installed. The camera does the recording, and the motion sensors watch for crashes.</p>
+        </div>
+        <div class="kit-item key">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="14" rx="2"/><path d="M12 16v3M8 22h8M10 19h4"/></svg>
+          <span class="num">02 · Important</span>
+          <h3>A sturdy stand</h3>
+          <p>A windshield or dashboard phone mount with a firm grip. It's the one thing that makes the biggest difference:</p>
+          <ul>
+            <li>Keeps the camera pointed at the road for the whole drive</li>
+            <li>Less shake, so video is steadier and number plates are easier to read</li>
+            <li>Fewer false crash alerts from a phone that wobbles or falls</li>
+            <li>Your hands stay on the wheel, not on the phone</li>
+          </ul>
+        </div>
+        <div class="kit-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2v5M15 2v5M7 7h10v4a5 5 0 0 1-10 0z"/><path d="M12 16v6"/></svg>
+          <span class="num">03 · Recommended</span>
+          <h3>A car charger</h3>
+          <p>Plug in on longer drives and your phone stays topped up, so Focus keeps recording all the way home.</p>
+        </div>
+      </div>
+      <div class="kit-tips" aria-label="Mounting tips">
+        <span>Mount near the top-centre of the windshield</span>
+        <span>Don't block your view of the road</span>
+        <span>Keep the lens clean and unobstructed</span>
+        <span>Stay out of direct sun, near the AC</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-inner">
+      <span style="color:var(--fog)">Witness</span><span style="color:var(--amber)">Evidence</span><span>Loop recording</span><span>Crash detection</span><span>On-device plate reading</span><span>Speed + GPS overlay</span><span>Drive sessions</span><span>SOS composer</span><span>Cloud backup</span><span>iPhone + Android</span>
+      <span style="color:var(--fog)">Witness</span><span style="color:var(--amber)">Evidence</span><span>Loop recording</span><span>Crash detection</span><span>On-device plate reading</span><span>Speed + GPS overlay</span><span>Drive sessions</span><span>SOS composer</span><span>Cloud backup</span><span>iPhone + Android</span>
+    </div>
+  </div>
+
+  <!-- PRICING -->
+  <section class="pricing" id="pricing">
+    <div class="wrap">
+      <div style="display:flex;flex-direction:column;gap:22px">
+        <div class="eyebrow">Pricing</div>
+        <h2>Cheaper than<br><span class="hl">a chai a day</span></h2>
+        <p style="color:var(--mute);max-width:42ch">A hardware dashcam costs thousands and needs mounting and wiring. Focus uses the phone that's already on your dashboard.</p>
+        <div class="waitlist" id="waitlist" style="scroll-margin-top:80px">
+          <div class="eyebrow">Waitlist</div>
+          <h3>Be first on the road</h3>
+          <p>Focus is launching soon on the App Store and Google Play. Join the waitlist and we'll email you the day it's out. Your first month is free.</p>
+          <div><a class="btn btn-amber" href="mailto:genzdigitalprivatelimited@gmail.com?subject=Add%20me%20to%20the%20Focus%20waitlist&amp;body=Hi%20Team%20Focus%2C%0A%0APlease%20email%20me%20when%20Focus%20launches.%0A%0AMy%20phone%3A%20iPhone%20%2F%20Android%20(keep%20one)%0A">Join the waitlist</a></div>
+          <small>Opens your email app with a message ready to send.</small>
+        </div>
+      </div>
+      <div class="price-card">
+        <div class="mono" style="color:var(--mute)">Focus · one plan</div>
+        <div class="price"><b><span class="rupee">₹</span>1</b><span>/ day <small class="permonth">(₹30 / month)</small></span></div>
+        <div class="mono" style="color:var(--ok)">First month free</div>
+        <ul>
+          <li>Unlimited loop recording within your storage limit</li>
+          <li>Crash detection with automatic clip locking</li>
+          <li>Speed, time and GPS burned into every clip</li>
+          <li>On-device number plate reading</li>
+          <li>SOS message composer and optional cloud backup for crash clips</li>
+          <li>Your security, guaranteed</li>
+          <li style="color:var(--mute)">Works best with a phone stand (not included)</li>
+        </ul>
+        <a class="btn btn-amber" href="#waitlist" style="width:100%;justify-content:center">Join the waitlist</a>
+        <p class="fine">You'll need a free account to sign in. After 30 days it's ₹30 a month, about ₹1 a day. Cancel anytime in your App Store or Google Play subscriptions.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="faq-head">
+        <div class="eyebrow">FAQ</div>
+        <h2 id="faq-title">Before you<br><span class="hl">hit the road</span></h2>
+        <p>The questions people ask before paying ₹1 a day. Something else? Write to <a href="mailto:genzdigitalprivatelimited@gmail.com">genzdigitalprivatelimited@gmail.com</a>.</p>
+      </div>
+      <div>
+        <details class="qa"><summary>Should I keep my phone charging?</summary><div><p>For longer drives, yes. Keeping your phone on a car charger means it stays topped up and Focus records the whole trip, however long the road.</p></div></details>
+        <details class="qa"><summary>Do I need a phone stand?</summary><div><p>Yes, we strongly recommend one. A firm windshield or dashboard mount keeps the camera aimed at the road, gives steadier video and clearer number plates, and avoids false crash alerts from a phone that moves around. Focus works without one, but you'll get much better footage with it.</p></div></details>
+        <details class="qa"><summary>Will my phone heat up?</summary><div><p>Phones get warm when they record for a long time, especially in direct sun on the dashboard. Mount yours where the AC reaches it and out of direct sunlight. If a phone gets too hot, iOS or Android may slow it down or pause the camera to protect it.</p></div></details>
+        <details class="qa"><summary>How much storage does it use?</summary><div><p>Only as much as you allow. You set a storage limit in Settings, and when Focus reaches it, it records over the oldest footage.</p><p>Locked crash clips are never recorded over; they stay until you delete them. Pick 720p to keep more footage, or 1080p for sharper detail.</p></div></details>
+        <details class="qa"><summary>Will the police and my insurer accept the footage?</summary><div><p>Dashcam footage is often used to support insurance claims and police complaints, but whether it is accepted in a particular case is up to the insurer, the police or the court.</p><p>Focus helps by writing the time, speed and GPS location into the video and locking crash clips so they can't be overwritten. Keep the original file and share a copy.</p></div></details>
+        <details class="qa"><summary>iPhone or Android?</summary><div><p>Both. Focus has the same features on iPhone and Android at the same ₹1 a day (₹30 a month). You pay through the App Store or Google Play, depending on your phone.</p></div></details>
+        <details class="qa"><summary>Does Focus record audio?</summary><div><p>No, never. Focus records video only.</p></div></details>
+        <details class="qa"><summary>Will crash detection always catch a real crash?</summary><div><p>No. It works on a motion-sensor threshold and isn't a certified crash detector, so it can miss a real impact or trigger on a pothole. In a real emergency, always call 112 yourself.</p></div></details>
+        <details class="qa"><summary>How do I cancel?</summary><div><p>Anytime, from your subscriptions in the App Store or Google Play. You keep access until the end of the period you've paid for.</p></div></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEGAL -->
+  <section class="legal" id="legal" aria-label="Legal">
+    <div class="wrap">
+      <div class="eyebrow" style="margin-bottom:10px">Legal</div>
+      <details class="doc" id="privacy-policy"><summary>Privacy Policy<span>Last updated 21 Sept 2026</span></summary><div class="doc-body"><p>This is the privacy policy for Focus (the "App"), made by GEN - Z DIGITAL PRIVATE LIMITED ("we", "us"), a private limited company incorporated in India. If you use the App you're agreeing to what's written below.</p><h4>1. What info we collect</h4><p><b>Account:</b> an email and password (or equivalent sign-in) to create and manage your account and subscription.</p><p><b>Video:</b> the App records video of the road while it's running (loop recording); older clips are overwritten automatically once you hit your storage limit, except crash clips, which are protected. No audio, ever. Video only.</p><p><b>Location and speed:</b> with your permission we use GPS to show your speed and location on screen, and this data is also burned directly into the video file.</p><p><b>License plates:</b> an optional feature reads plate text using on-device machine learning. This happens on your phone; we don't receive this data unless you separately turn on cloud backup. Every reading comes with a confidence score.</p><p><b>Crash detection:</b> we use your phone's motion sensors to try to detect a crash. This is not a certified crash detector. It's threshold-based, so it can miss a real crash or trigger on something like a pothole.</p><p><b>Emergency contact:</b> if you set one up, we save their name and number on your device to pre-fill a text after a crash is detected. You still have to tap send yourself.</p><p><b>Cloud backup (optional):</b> if turned on, your crash clips upload to your cloud provider. If off, nothing leaves your phone.</p><p><b>Other:</b> basic device info (model, OS version, crash logs) to help us fix bugs.</p><h4>2. What we use it for</h4><p>Making the App work (recording, playback, plate reading, the SOS text, backup if enabled) and fixing bugs. We don't sell your information to anyone.</p><h4>3. Where it's stored</h4><p>Everything stays on your phone unless cloud backup is turned on, in which case crash clips also go to your cloud provider.</p><h4>4. How long we keep it</h4><p>Loop footage is deleted automatically past your storage limit (except protected crash clips). You can delete any clip anytime. Uninstalling the App removes everything stored locally.</p><h4>5. Your choices</h4><p>Turn off Camera, Location or Motion permissions anytime in your phone's Settings. Plate reading and cloud backup can both be switched off in the App's own Settings screen.</p><h4>6. Other companies involved</h4><p>If cloud backup is on, your crash clips are handled by Firebase Storage (a Google product). Their privacy policy applies to that part too.</p><h4>7. Kids</h4><p>Focus isn't meant for kids under 13, and we don't knowingly collect their information.</p><h4>8. Using this responsibly</h4><p>Laws about recording video and reading plates vary by location. It's on you to use the App legally wherever you are. Don't use the plate reader to stalk, harass or spy on anyone.</p><h4>9. Security</h4><p>We try to keep your data safe, but nothing is 100% secure. Keep your phone locked with a passcode too.</p><h4>10. Changes</h4><p>We may update this policy. If we do, the date at the top will change. Continuing to use the App after that means you accept the changes.</p><h4>11. Contact</h4><p>GEN - Z DIGITAL PRIVATE LIMITED: <a href="mailto:genzdigitalprivatelimited@gmail.com">genzdigitalprivatelimited@gmail.com</a></p></div></details>
+      <details class="doc" id="terms"><summary>Terms of Service<span>Last updated 21 Sept 2026</span></summary><div class="doc-body"><p>Read this before you use Focus (the "App"), made by GEN - Z DIGITAL PRIVATE LIMITED, a private limited company incorporated in India. Using the App means you agree to this. If you don't agree, don't use it.</p><h4>1. What the app does</h4><p>Loop video recording, speed/GPS overlay, crash detection, an optional plate reader, an optional emergency contact text, and optional cloud backup for crash clips.</p><h4>2. It's not a certified safety device</h4><p>Focus is NOT a certified safety device or emergency response system. Crash detection works off motion-sensor thresholds, so it can miss a real crash or false-trigger on something like a speed bump. The emergency message needs YOU to tap send. The App cannot and does not send anything on its own. If something is a real emergency, call your emergency number directly.</p><h4>3. License plate reader</h4><p>The plate reader only reads what's actually visible in frame, comes with a confidence score, and doesn't guess characters it can't see clearly. Double-check low-confidence readings yourself before relying on them. You're responsible for using this legally, and you can't use it to stalk, harass or spy on anyone.</p><h4>4. What you're responsible for</h4><p>Using the App legally, including any recording-consent laws where you drive; not letting it distract you while driving; not treating it as a replacement for safe driving, insurance, or calling emergency services; and whatever you record, store or share using the App.</p><h4>5. Permissions</h4><p>Camera and location are required for the App to work; motion access is used for crash detection. Turn any of these off in Settings and that feature stops working.</p><h4>6. Cloud backup</h4><p>If you turn on cloud backup, it's your own cloud account you're connecting. Any costs or terms from that provider are between you and them, not us.</p><h4>7. Who owns what</h4><p>The App itself belongs to GEN - Z DIGITAL PRIVATE LIMITED. We license it to you for personal, non-commercial use. Whatever video or data you record is yours.</p><h4>8. No warranty</h4><p>The App is provided as is, with no warranties and no guarantee that crash detection or plate reading will always be accurate.</p><h4>9. Limitation of liability</h4><p>To the extent the law allows, GEN - Z DIGITAL PRIVATE LIMITED isn't liable for indirect or consequential damages from using the App, including a missed crash detection, a delayed emergency text, or a wrong plate reading.</p><h4>10. Indemnification</h4><p>If you misuse the App (like breaking recording or surveillance laws) and that gets us in trouble, you agree to cover us for that.</p><h4>11. Ending things</h4><p>We can shut down or change the App anytime; you can stop using or delete it anytime too.</p><h4>12. Changes to these terms</h4><p>We may update these terms. If we do, the date at the top changes. Using the App after that means you accepted the new version.</p><h4>13. Governing law</h4><p>These terms are governed by the laws of India. Disputes are subject to the jurisdiction of the courts of India.</p><h4>14. Contact</h4><p>GEN - Z DIGITAL PRIVATE LIMITED: <a href="mailto:genzdigitalprivatelimited@gmail.com">genzdigitalprivatelimited@gmail.com</a></p></div></details>
+    </div>
+  </section>
+</main>
+
+<div class="lane" aria-hidden="true"></div>
+<footer>
+  <div class="wrap">
+    <div class="footer-big" id="footerBig"><span>Eyes on the road<i>.</i></span></div>
+    <div class="footer-row">
+      <div>© 2026 GEN - Z DIGITAL PRIVATE LIMITED · India</div>
+      <nav aria-label="Footer">
+        <a href="#why">Why Focus</a>
+        <a href="#faq">FAQ</a>
+        <a href="#privacy-policy">Privacy Policy</a>
+        <a href="#terms">Terms of Service</a>
+        <a href="mailto:genzdigitalprivatelimited@gmail.com">Contact</a>
+      </nav>
+    </div>
+    <p class="footer-note">Focus is not a certified safety device. Crash detection can miss real crashes or trigger falsely. In an emergency, always call 112.</p>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- seeded random ---------- */
+  function rng(seed){ let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+  /* ---------- scene palettes ---------- */
+  const PAL = {
+    night:  {sky:['#03050a','#0a1220','#18233a'], hill:'#070a10', ground:'#06080b', road:'#14171c', edge:'rgba(230,230,230,.45)', dash:'rgba(245,184,30,.85)', lamps:true, stars:true, car:true},
+    dusk:   {sky:['#171c3a','#5a3563','#e2764f'], hill:'#1c1420', ground:'#19130f', road:'#28231f', edge:'rgba(240,230,220,.55)', dash:'rgba(245,184,30,.9)', lamps:true, car:true},
+    dawn:   {sky:['#243650','#8ea6c3','#f2c68a'], hill:'#3a4150', ground:'#383a31', road:'#3a3d42', edge:'rgba(245,245,245,.7)', dash:'rgba(245,245,245,.85)', car:false, sun:'#ffd9a0'},
+    day:    {sky:['#5e98d2','#9cc4e6','#dce8f2'], hill:'#6c7f8c', ground:'#5a6848', road:'#484b50', edge:'rgba(255,255,255,.8)', dash:'rgba(255,255,255,.9)', car:true},
+    monsoon:{sky:['#2f3841','#4f5a64','#76818b'], hill:'#3a434a', ground:'#28302c', road:'#252a2f', edge:'rgba(230,235,240,.55)', dash:'rgba(245,184,30,.7)', rain:true, lamps:true, car:true, wet:true},
+    tunnel: {sky:['#140f07','#2b1d0b','#3a270e'], hill:'#120d06', ground:'#1a140b', road:'#1c1a17', edge:'rgba(255,200,120,.5)', dash:'rgba(255,200,120,.8)', lamps:true, tunnel:true, car:true},
+    ghat:   {sky:['#7aa6c9','#b6cfdf','#e6eef2'], hill:'#4f6b52', ground:'#3f5a3c', road:'#4a4c50', edge:'rgba(255,255,255,.75)', dash:'rgba(245,184,30,.9)', hills:true, car:false},
+  };
+
+  function drawScene(canvas, key, t = 0, opts = {}){
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas.width !== Math.round(w*dpr) || canvas.height !== Math.round(h*dpr)){ canvas.width = Math.round(w*dpr); canvas.height = Math.round(h*dpr); }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const p = PAL[key] || PAL.night;
+    const R = rng(opts.seed || 1);
+    const hy = h * (opts.horizon || 0.5);
+    const vx = w * 0.5;
+
+    // sky
+    let g = ctx.createLinearGradient(0,0,0,hy);
+    p.sky.forEach((c,i)=>g.addColorStop(i/(p.sky.length-1),c));
+    ctx.fillStyle = g; ctx.fillRect(0,0,w,hy+1);
+
+    if (p.stars){ ctx.fillStyle='rgba(255,255,255,.55)'; for(let i=0;i<60;i++){ ctx.fillRect(R()*w, R()*hy*0.8, R()<.2?1.6:1, R()<.2?1.6:1); } }
+    if (p.sun){ const sg = ctx.createRadialGradient(vx+w*.12,hy,0,vx+w*.12,hy,w*.35); sg.addColorStop(0,p.sun); sg.addColorStop(1,'rgba(255,217,160,0)'); ctx.fillStyle=sg; ctx.fillRect(0,0,w,hy); }
+
+    // horizon silhouette
+    ctx.fillStyle = p.hill; ctx.beginPath(); ctx.moveTo(0,hy);
+    const amp = p.hills ? h*0.16 : h*0.035;
+    const ph = R()*6;
+    for (let x=0;x<=w;x+=w/40){ const y = hy - Math.abs(Math.sin(x/w*3.2+ph))*amp - Math.sin(x/w*9+ph)*amp*0.25 - (p.hills?amp*0.2:0); ctx.lineTo(x, y); }
+    ctx.lineTo(w,hy); ctx.closePath(); ctx.fill();
+    if (!p.hills && !p.tunnel){ // city blocks on horizon
+      for (let i=0;i<22;i++){ const bx = R()*w, bw = 6+R()*22, bh = 4+R()*h*0.07; ctx.fillStyle=p.hill; ctx.fillRect(bx, hy-bh, bw, bh);
+        if (p.lamps){ ctx.fillStyle='rgba(255,210,140,.5)'; for(let k=0;k<3;k++) ctx.fillRect(bx+2+R()*(bw-4), hy-bh+2+R()*(bh-4), 1.5, 1.5); } }
+    }
+
+    // ground
+    ctx.fillStyle = p.ground; ctx.fillRect(0,hy,w,h-hy);
+
+    // road
+    const half = (y)=> w*0.012 + (w*0.66)*((y-hy)/(h-hy));
+    ctx.fillStyle = p.road; ctx.beginPath();
+    ctx.moveTo(vx-half(hy),hy); ctx.lineTo(vx+half(hy),hy); ctx.lineTo(vx+half(h),h); ctx.lineTo(vx-half(h),h); ctx.closePath(); ctx.fill();
+    if (p.wet){ const wg=ctx.createLinearGradient(0,hy,0,h); wg.addColorStop(0,'rgba(255,190,110,.18)'); wg.addColorStop(1,'rgba(255,190,110,0)'); ctx.fillStyle=wg; ctx.fill(); }
+
+    // tunnel walls
+    if (p.tunnel){
+      ctx.fillStyle='#0e0b07';
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(vx-w*.05,hy-h*.08); ctx.lineTo(vx-w*.05,hy); ctx.lineTo(0,h); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(w,0); ctx.lineTo(vx+w*.05,hy-h*.08); ctx.lineTo(vx+w*.05,hy); ctx.lineTo(w,h); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(w,0); ctx.lineTo(vx+w*.05,hy-h*.08); ctx.lineTo(vx-w*.05,hy-h*.08); ctx.closePath(); ctx.fillStyle='#0a0805'; ctx.fill();
+      for (let i=0;i<9;i++){ const d=((i+t*0.6)%9)/9, z=d*d; const y = (hy-h*.08) - (hy-h*.08)*z; const x0 = vx - (w*.05 + (vx-w*.05)*z*0.0);
+        const lx = vx + (0 - vx)*z*0.9, rx = vx + (w - vx)*z*0.9; const ly = (hy-h*.08)*(1-z);
+        const r = 2+z*14; const lg = ctx.createRadialGradient(lx,ly,0,lx,ly,r*3); lg.addColorStop(0,'rgba(255,190,90,.95)'); lg.addColorStop(1,'rgba(255,190,90,0)'); ctx.fillStyle=lg; ctx.fillRect(lx-r*3,ly-r*3,r*6,r*6);
+        const rg = ctx.createRadialGradient(rx,ly,0,rx,ly,r*3); rg.addColorStop(0,'rgba(255,190,90,.95)'); rg.addColorStop(1,'rgba(255,190,90,0)'); ctx.fillStyle=rg; ctx.fillRect(rx-r*3,ly-r*3,r*6,r*6); }
+    }
+
+    // edge lines
+    ctx.strokeStyle = p.edge; ctx.lineWidth = Math.max(1.5, w/400);
+    ctx.beginPath(); ctx.moveTo(vx-half(hy)*0.9,hy); ctx.lineTo(vx-half(h)*0.9,h); ctx.moveTo(vx+half(hy)*0.9,hy); ctx.lineTo(vx+half(h)*0.9,h); ctx.stroke();
+
+    // centre dashes
+    ctx.fillStyle = p.dash;
+    const N = 9;
+    for (let i=0;i<N;i++){
+      const d = ((i + t) % N) / N; const d2 = Math.min(d + 0.05, 1.05);
+      const y1 = hy + (h-hy)*d*d, y2 = hy + (h-hy)*d2*d2;
+      const w1 = w*0.0015 + d*w*0.012, w2 = w*0.0015 + d2*w*0.012;
+      ctx.beginPath(); ctx.moveTo(vx-w1,y1); ctx.lineTo(vx+w1,y1); ctx.lineTo(vx+w2,y2); ctx.lineTo(vx-w2,y2); ctx.closePath(); ctx.fill();
+    }
+
+    // street lamps
+    if (p.lamps && !p.tunnel){
+      const M = 6;
+      for (let i=0;i<M;i++){
+        const d = ((i + t*0.55) % M) / M; const z = d*d;
+        const y = hy + (h-hy)*z;
+        const off = half(y)*1.12 + 4;
+        const ph2 = h*0.05 + z*h*0.75;
+        [-1,1].forEach(s=>{
+          const x = vx + s*off;
+          ctx.strokeStyle='rgba(20,22,26,.95)'; ctx.lineWidth = 1 + z*4;
+          ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y-ph2); ctx.lineTo(x - s*(4+z*30), y-ph2); ctx.stroke();
+          const lx = x - s*(4+z*30), ly = y-ph2, r = 3 + z*40;
+          const lg = ctx.createRadialGradient(lx,ly,0,lx,ly,r);
+          lg.addColorStop(0,'rgba(255,200,120,.95)'); lg.addColorStop(.25,'rgba(255,170,70,.35)'); lg.addColorStop(1,'rgba(255,170,70,0)');
+          ctx.fillStyle=lg; ctx.fillRect(lx-r,ly-r,r*2,r*2);
+          if (opts.flare){ const fw = r*3.2, fl = ctx.createLinearGradient(lx-fw,0,lx+fw,0);
+            fl.addColorStop(0,'rgba(255,190,110,0)'); fl.addColorStop(.5,`rgba(255,210,150,${0.12+z*0.3})`); fl.addColorStop(1,'rgba(255,190,110,0)');
+            ctx.fillStyle = fl; ctx.fillRect(lx-fw, ly-0.5-z, fw*2, 1+z*2); }
+        });
+      }
+    }
+
+    // speed streaks radiating from the vanishing point
+    if (opts.streaks){
+      const SR = rng(99); ctx.lineWidth = 1;
+      for (let k=0;k<34;k++){
+        const a = SR()*Math.PI*2, base = SR();
+        if (Math.sin(a) < -0.15) continue;
+        const q = ((base + t*0.35) % 1); const r1 = q*q*w*0.9, r2 = r1 + 20 + q*w*0.25;
+        ctx.strokeStyle = `rgba(255,255,255,${0.02 + q*0.07})`;
+        ctx.beginPath(); ctx.moveTo(vx+Math.cos(a)*r1, hy+Math.sin(a)*r1*0.6); ctx.lineTo(vx+Math.cos(a)*r2, hy+Math.sin(a)*r2*0.6); ctx.stroke();
+      }
+    }
+
+    // oncoming car in the other lane, with an anamorphic headlight flare
+    if (opts.oncoming != null && opts.oncoming < 1){
+      const d = opts.oncoming, z = d*d;
+      const y = hy + (h-hy)*z; const x = vx - half(y)*0.48; const sp = 2 + z*w*0.05; const r = 4 + z*w*0.09;
+      [-1,1].forEach(s=>{ const lx = x + s*sp, lg = ctx.createRadialGradient(lx,y,0,lx,y,r);
+        lg.addColorStop(0,'rgba(255,255,255,1)'); lg.addColorStop(.18,'rgba(220,235,255,.6)'); lg.addColorStop(1,'rgba(200,220,255,0)');
+        ctx.fillStyle = lg; ctx.fillRect(lx-r,y-r,r*2,r*2); });
+      const fw = r*9, fg = ctx.createLinearGradient(x-fw,0,x+fw,0);
+      fg.addColorStop(0,'rgba(120,170,255,0)'); fg.addColorStop(.5,`rgba(170,205,255,${0.25+z*0.45})`); fg.addColorStop(1,'rgba(120,170,255,0)');
+      ctx.fillStyle = fg; ctx.fillRect(x-fw, y-1-z*2, fw*2, 2+z*4);
+      const wash = ctx.createRadialGradient(x,y,0,x,y,w*0.6); wash.addColorStop(0,`rgba(200,220,255,${z*0.18})`); wash.addColorStop(1,'rgba(200,220,255,0)');
+      ctx.fillStyle = wash; ctx.fillRect(0,0,w,h);
+    }
+
+    // car ahead
+    if (p.car && opts.car !== false){
+      const cz = 0.2 + (opts.carZ||0);
+      const cy = hy + (h-hy)*cz*cz*2.2;
+      const cw = w*0.055 + cz*w*0.08, ch = cw*0.55;
+      const cx = vx + w*(opts.carX||0.035);
+      ctx.fillStyle='#0b0c0e'; ctx.beginPath();
+      ctx.moveTo(cx-cw/2, cy); ctx.lineTo(cx+cw/2, cy); ctx.lineTo(cx+cw/2, cy-ch*0.55); ctx.lineTo(cx+cw*0.32, cy-ch); ctx.lineTo(cx-cw*0.32, cy-ch); ctx.lineTo(cx-cw/2, cy-ch*0.55); ctx.closePath(); ctx.fill();
+      [-1,1].forEach(s=>{ const tx = cx + s*cw*0.38, ty = cy - ch*0.42, r = cw*0.28;
+        const tg = ctx.createRadialGradient(tx,ty,0,tx,ty,r); tg.addColorStop(0,'rgba(255,60,48,1)'); tg.addColorStop(.3,'rgba(255,40,30,.45)'); tg.addColorStop(1,'rgba(255,40,30,0)');
+        ctx.fillStyle=tg; ctx.fillRect(tx-r,ty-r,r*2,r*2); ctx.fillStyle='#ff5a4a'; ctx.fillRect(tx-cw*0.07,ty-cw*0.025,cw*0.14,cw*0.05); });
+      if (p.wet){ ctx.fillStyle='rgba(255,60,48,.18)'; ctx.fillRect(cx-cw*0.45, cy, cw*0.9, (h-cy)*0.5); }
+    }
+
+    // rain
+    if (p.rain){
+      ctx.strokeStyle='rgba(210,225,240,.35)'; ctx.lineWidth=1;
+      const RR = rng((opts.seed||1)*7);
+      ctx.beginPath();
+      for (let i=0;i<140;i++){ const x = RR()*w, y = ((RR()*h) + t*h*0.9) % h, l = 8+RR()*16; ctx.moveTo(x,y); ctx.lineTo(x-2,y+l); }
+      ctx.stroke();
+      ctx.fillStyle='rgba(220,230,240,.12)';
+      for (let i=0;i<40;i++){ ctx.beginPath(); ctx.arc(RR()*w,RR()*h,1+RR()*3,0,7); ctx.fill(); }
+    }
+
+    // impact flash
+    if (opts.flash){ const fg = ctx.createRadialGradient(vx,h*0.55,0,vx,h*0.55,w*0.7); fg.addColorStop(0,'rgba(255,59,48,.35)'); fg.addColorStop(1,'rgba(255,59,48,0)'); ctx.fillStyle=fg; ctx.fillRect(0,0,w,h); }
+
+    // chromatic lens edge for the hero
+    if (opts.flare){ const cg = ctx.createRadialGradient(vx,h*0.5,Math.min(w,h)*0.45,vx,h*0.5,Math.max(w,h)*0.75);
+      cg.addColorStop(0,'rgba(0,0,0,0)'); cg.addColorStop(.8,'rgba(40,60,120,.10)'); cg.addColorStop(1,'rgba(120,40,40,.14)');
+      ctx.fillStyle = cg; ctx.fillRect(0,0,w,h); }
+
+    // lens vignette
+    const vg = ctx.createRadialGradient(vx,h*0.5,Math.min(w,h)*0.3,vx,h*0.5,Math.max(w,h)*0.8);
+    vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.55)');
+    ctx.fillStyle=vg; ctx.fillRect(0,0,w,h);
+  }
+
+  /* ---------- HERO ---------- */
+  const hero = document.getElementById('heroCanvas');
+  const kmhEl = document.getElementById('kmh'), recEl = document.getElementById('recTime'), clockEl = document.getElementById('clock');
+  const start = performance.now();
+  let heroT = 0, last = performance.now(), heroVisible = true;
+  const pad = n => String(n).padStart(2,'0');
+  function tickText(now){
+    const s = Math.floor((now-start)/1000) + 14*60 + 32;
+    recEl.textContent = `${pad(Math.floor(s/3600))}:${pad(Math.floor(s/60)%60)}:${pad(s%60)}`;
+    const d = new Date();
+    clockEl.textContent = `${pad(d.getDate())} ${d.toLocaleString('en-GB',{month:'short'}).toUpperCase()} ${d.getFullYear()} · ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+  function heroFrame(now){
+    const dt = Math.min((now-last)/1000, .05); last = now;
+    const speed = 52 + Math.sin(now/2600)*9 + Math.sin(now/900)*2;
+    heroT += dt * speed / 22;
+    if (heroVisible){ drawScene(hero,'night',heroT,{seed:5, carX:0.04 + Math.sin(now/4000)*0.01, carZ: Math.sin(now/3100)*0.02, streaks:true, flare:true, oncoming:(heroT*0.09) % 1.7}); }
+    kmhEl.textContent = Math.round(speed);
+    tickText(now);
+    if (!reduce) requestAnimationFrame(heroFrame);
+  }
+  if (reduce){ drawScene(hero,'night',3.3,{seed:5, flare:true, oncoming:.55}); tickText(performance.now()); setInterval(()=>tickText(performance.now()),1000); }
+  else requestAnimationFrame(heroFrame);
+  if ('IntersectionObserver' in window){ new IntersectionObserver(e=>{ heroVisible = e[0].isIntersecting; }).observe(hero); }
+
+  /* ---------- Static scenes in drive log ---------- */
+  const clipCanvases = [...document.querySelectorAll('.clip canvas')];
+  function drawClips(){ clipCanvases.forEach(c => drawScene(c, c.dataset.scene, (+c.dataset.seed % 9) * 0.37, {seed:+c.dataset.seed, flash: !!c.dataset.flash})); }
+
+  /* ---------- Modes grid ---------- */
+  const MODES = [
+    {key:'dawn', name:'First light', time:'06:02', kmh:44, where:'NH48'},
+    {key:'day', name:'City rush', time:'09:15', kmh:23, where:'Ring Road'},
+    {key:'ghat', name:'Ghat roads', time:'11:40', kmh:36, where:'Saputara'},
+    {key:'dusk', name:'Golden hour', time:'18:26', kmh:58, where:'Dumas Road'},
+    {key:'monsoon', name:'Monsoon', time:'20:10', kmh:31, where:'Adajan'},
+    {key:'tunnel', name:'Underpass', time:'22:48', kmh:49, where:'Udhna'},
+  ];
+  const grid = document.getElementById('modeGrid');
+  grid.innerHTML = MODES.map((m,i)=>`
+    <button class="mode" type="button" aria-pressed="false" aria-label="${m.name}: show overlay">
+      <div class="frame"><canvas data-i="${i}"></canvas>
+        <div class="overlay" aria-hidden="true"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+          <div class="t"><span class="rec"><i></i>REC</span><span>${m.time}:${pad((i*17)%60)}</span></div>
+          <div class="b"><span>${m.where.toUpperCase()}<br>21.1${i}°N 72.8${i}°E</span><span class="kmh">${m.kmh}<small style="font:500 10px var(--mono)"> KM/H</small></span></div>
+        </div>
+      </div>
+      <div class="meta"><h3>${m.name}</h3><span>${m.time}</span></div>
+    </button>`).join('');
+  const modeCanvases = [...grid.querySelectorAll('canvas')];
+  function drawModes(){ modeCanvases.forEach(c => { const m = MODES[+c.dataset.i]; drawScene(c, m.key, 2.2 + +c.dataset.i*.9, {seed: 40 + +c.dataset.i, horizon:.48}); }); }
+  grid.addEventListener('click', e => { const b = e.target.closest('.mode'); if(!b) return; const on = !b.classList.contains('on'); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+
+  /* ---------- Horizontal pinned scroll ---------- */
+  const log = document.querySelector('.drivelog'), sticky = log.querySelector('.sticky'), track = document.getElementById('track'), prog = document.getElementById('prog');
+  let dist = 0;
+  function setupPin(){
+    const wide = matchMedia('(min-width: 820px)').matches && !reduce && innerHeight >= 560;
+    log.classList.toggle('pinned', wide);
+    if (wide){
+      track.style.transform = '';
+      dist = Math.max(0, track.scrollWidth - sticky.clientWidth + 0);
+      log.style.height = (sticky.offsetHeight + dist) + 'px';
+      onScroll();
+    } else { log.style.height = ''; track.style.transform = ''; }
+  }
+  function onScroll(){
+    if (!log.classList.contains('pinned')) return;
+    const r = log.getBoundingClientRect();
+    const p = Math.min(Math.max(-r.top, 0), dist);
+    track.style.transform = `translate3d(${-p}px,0,0)`;
+    prog.style.width = (dist ? p/dist*100 : 0) + '%';
+  }
+  addEventListener('scroll', onScroll, {passive:true});
+
+  /* ---------- Impact demo ---------- */
+  const gc = document.getElementById('gChart');
+  const gNow = document.getElementById('gNow'), gPeakEl = document.getElementById('gPeak'), lockedEl = document.getElementById('locked');
+  const statusEl = document.getElementById('status'), statusText = document.getElementById('statusText');
+  const sos = document.getElementById('sos'), sosText = document.getElementById('sosText');
+  const btn = document.getElementById('impactBtn');
+  const SAMPLES = 160; const data = new Array(SAMPLES).fill(1);
+  let spike = 0, peak = 1, locks = 0, lockUntil = 0;
+  const css = getComputedStyle(document.documentElement);
+  const C = k => css.getPropertyValue(k).trim();
+  function drawG(){
+    const w = gc.clientWidth, h = gc.clientHeight; if(!w) return;
+    const dpr = Math.min(devicePixelRatio||1,2);
+    if (gc.width !== Math.round(w*dpr)){ gc.width = Math.round(w*dpr); gc.height = Math.round(h*dpr); }
+    const ctx = gc.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
+    const L = 40, Rm = 12, T = 16, B = 22; const max = 3;
+    const y = v => T + (h-T-B) * (1 - v/max);
+    ctx.font = `11px ${C('--mono')}`; ctx.textBaseline='middle';
+    [0,1,2,3].forEach(v => { ctx.strokeStyle = C('--line'); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, y(v)); ctx.lineTo(w-Rm, y(v)); ctx.stroke(); ctx.fillStyle = C('--mute'); ctx.fillText(v+' g', 6, y(v)); });
+    ctx.setLineDash([5,5]); ctx.strokeStyle = C('--amber'); ctx.beginPath(); ctx.moveTo(L,y(2)); ctx.lineTo(w-Rm,y(2)); ctx.stroke(); ctx.setLineDash([]);
+    const xs = i => L + (w-L-Rm) * i/(SAMPLES-1);
+    const hot = performance.now() < lockUntil;
+    ctx.beginPath(); data.forEach((v,i)=> i? ctx.lineTo(xs(i),y(v)) : ctx.moveTo(xs(i),y(v)));
+    ctx.lineTo(xs(SAMPLES-1), y(0)); ctx.lineTo(xs(0), y(0)); ctx.closePath();
+    const ag = ctx.createLinearGradient(0,T,0,h-B); ag.addColorStop(0, hot ? 'rgba(255,59,48,.28)' : 'rgba(61,214,140,.2)'); ag.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle = ag; ctx.fill();
+    ctx.beginPath(); data.forEach((v,i)=> i? ctx.lineTo(xs(i),y(v)) : ctx.moveTo(xs(i),y(v)));
+    ctx.strokeStyle = hot ? C('--rec') : C('--ok'); ctx.lineWidth = 2; ctx.stroke();
+    const lv = data[SAMPLES-1]; ctx.fillStyle = ctx.strokeStyle; ctx.beginPath(); ctx.arc(xs(SAMPLES-1), y(Math.min(lv,max)), 4, 0, 7); ctx.fill();
+  }
+  let gLast = 0;
+  function gStep(now){
+    if (now - gLast > 50){
+      gLast = now;
+      let v = 1 + (Math.random()-.5)*0.12 + Math.sin(now/700)*0.04;
+      if (spike > 0){ v += spike; spike *= 0.72; if (spike < 0.02) spike = 0; }
+      data.push(v); data.shift();
+      peak = Math.max(peak, v);
+      gNow.textContent = v.toFixed(2);
+      gPeakEl.textContent = peak.toFixed(2);
+      if (performance.now() > lockUntil && statusEl.classList.contains('alert')){ statusEl.classList.remove('alert'); statusText.textContent = 'Recording'; }
+      drawG();
+    }
+    if (!reduce) requestAnimationFrame(gStep);
+  }
+  btn.addEventListener('click', () => {
+    const g = 2.3 + Math.random()*0.6;
+    spike = g - 0.4;
+    setTimeout(() => {
+      locks++; lockedEl.textContent = locks;
+      statusEl.classList.add('alert'); statusText.textContent = `Impact ${g.toFixed(1)} g · clip locked`;
+      lockUntil = performance.now() + 4500;
+      const d = new Date();
+      sosText.textContent = `Sent from Focus: a possible crash was detected at ${pad(d.getHours())}:${pad(d.getMinutes())} near 21.1702° N, 72.8311° E (maps.google.com/?q=21.1702,72.8311). Please check on me.`;
+      sos.hidden = false;
+    }, 120);
+  });
+  if (reduce){ drawG(); setInterval(()=>gStep(performance.now()), 200); } else requestAnimationFrame(gStep);
+
+  /* ---------- Fit footer motto to width ---------- */
+  const fb = document.getElementById('footerBig');
+  function fitEl(el, max){ el.style.fontSize = '100px'; const avail = el.parentElement.clientWidth - parseFloat(getComputedStyle(el.parentElement).paddingLeft) - parseFloat(getComputedStyle(el.parentElement).paddingRight); const need = Math.max(...[...el.children].map(s => s.getBoundingClientRect().width)); el.style.fontSize = Math.min(100*avail/need*0.98, max) + 'px'; }
+  const mt = document.getElementById('motto');
+  function fitFooter(){ fitEl(fb, 300); fitEl(mt, 230); }
+
+  /* ---------- Open legal docs from links ---------- */
+  function openFromHash(){ const el = location.hash && document.getElementById(location.hash.slice(1)); if (el && el.tagName === 'DETAILS'){ el.open = true; el.scrollIntoView(); } }
+  addEventListener('hashchange', openFromHash);
+  document.querySelectorAll('a[href="#privacy-policy"],a[href="#terms"]').forEach(a => a.addEventListener('click', () => { const d = document.getElementById(a.getAttribute('href').slice(1)); if (d) d.open = true; }));
+  openFromHash();
+
+  /* ---------- Headlight follows pointer ---------- */
+  const heroSec = document.querySelector('.hero'), hl = document.getElementById('headlight');
+  heroSec.addEventListener('pointermove', e => { const r = heroSec.getBoundingClientRect(); hl.style.setProperty('--hx', (e.clientX-r.left)+'px'); hl.style.setProperty('--hy', (e.clientY-r.top)+'px'); });
+
+  /* ---------- Tilt + sheen on footage frames ---------- */
+  if (!reduce && matchMedia('(hover: hover)').matches){
+    document.addEventListener('pointermove', e => {
+      const f = e.target.closest && e.target.closest('.clip .frame, .mode .frame'); if (!f) return;
+      const r = f.getBoundingClientRect(), x = (e.clientX-r.left)/r.width, y = (e.clientY-r.top)/r.height;
+      f.style.setProperty('--ry', ((x-.5)*8).toFixed(2)+'deg'); f.style.setProperty('--rx', ((.5-y)*8).toFixed(2)+'deg');
+      f.style.setProperty('--mx', (x*100)+'%'); f.style.setProperty('--my', (y*100)+'%');
+    });
+    document.addEventListener('pointerout', e => { const f = e.target.closest && e.target.closest('.clip .frame, .mode .frame'); if (f && !f.contains(e.relatedTarget)){ f.style.setProperty('--rx','0deg'); f.style.setProperty('--ry','0deg'); } });
+  }
+
+  /* ---------- Motto drifts apart as you scroll ---------- */
+  const mSec = document.querySelector('.manifesto'), mW = mt.querySelector('.w'), mE = mt.querySelector('.e');
+  function drift(){ if (reduce) return; const r = mSec.getBoundingClientRect(); const p = Math.max(-1, Math.min(1, (r.top + r.height/2 - innerHeight/2) / innerHeight));
+    const amt = Math.min(60, innerWidth*0.04); mW.style.transform = `translateX(${(p*amt).toFixed(1)}px)`; mE.style.transform = `translateX(${(-p*amt).toFixed(1)}px)`; }
+  addEventListener('scroll', drift, {passive:true});
+
+  /* ---------- Impact: shake + red wash ---------- */
+  const impactSec = document.getElementById('impact'), consoleEl = document.querySelector('.console');
+  btn.addEventListener('click', () => { setTimeout(() => { if (!reduce){ consoleEl.classList.remove('shake'); void consoleEl.offsetWidth; consoleEl.classList.add('shake'); } impactSec.classList.add('hit'); setTimeout(()=>impactSec.classList.remove('hit'), 4500); }, 120); });
+
+  /* ---------- Resize ---------- */
+  let rt;
+  function redrawAll(){ fitFooter(); drift(); drawClips(); drawModes(); drawG(); setupPin(); if (reduce) drawScene(hero,'night',3.3,{seed:5, flare:true, oncoming:.55}); }
+  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(redrawAll, 120); });
+  redrawAll();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ fitFooter(); setupPin(); });
+})();
+</script>
+
+</body>
+</html>
